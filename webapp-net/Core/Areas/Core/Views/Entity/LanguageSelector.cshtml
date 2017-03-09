@@ -12,18 +12,27 @@
 
         filteredLocalizations.AddRange(siteLocalizations.Where(siteLoc => !excludedLocalizations.Contains(siteLoc.Path)).Select(s=>s));
     }
-    var redirectId = WebRequestContext.PageModel.Id;
+    var redirectId = WebRequestContext.PageModel == null ? null : WebRequestContext.PageModel.Id;
     var defaultItem = Model.Settings.ContainsKey("defaultContentLink") ? Model.Settings["defaultContentLink"] : null;
 }
-@if (redirectId != null && filteredLocalizations.Count > 1)
+@if (filteredLocalizations.Count > 1)
 {
     <div class="@Model.HtmlClasses" @Html.DxaEntityMarkup()>
         <select class="selectpicker" data-width="auto">
             @foreach (var loc in filteredLocalizations)
             {
-                var parms = "localizationId=" + loc.Id + (defaultItem != null ? "&defaultItem=" + defaultItem : "");
-                parms += "&defaultPath=" + loc.Path;
-                <option value="@loc.Id" data-href="@(WebRequestContext.Localization.Path)/resolve/@(redirectId)?@parms" @(loc.Id == WebRequestContext.Localization.Id ? "selected" : "")>
+                string url;
+                if (redirectId != null)
+                {
+                    var parms = "localizationId=" + loc.Id + (defaultItem != null ? "&defaultItem=" + defaultItem : "");
+                    parms += "&defaultPath=" + loc.Path;
+                    url = (WebRequestContext.Localization.Path) + "/resolve/" + redirectId + "?" + parms;
+                }
+                else
+                {
+                    url = (WebRequestContext.Localization.Path);
+                }
+                <option value="@loc.Id" data-href="@url" @(loc.LocalizationId == WebRequestContext.Localization.LocalizationId ? "selected" : "")>
                     @loc.Language
                 </option>
             }
